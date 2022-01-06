@@ -55,6 +55,7 @@ list_names = list(df.columns)
 # train almost 80% of data
 data_to_be_trained = (80 * len(df.index)) // 100
 
+# TODO: random time series. Make a list of random numbers and traverse the list with for i puting i as time series:time series +1
 print("Computing different models for each time series...")
 # for each time series
 for time_series in range(num):
@@ -100,7 +101,7 @@ for time_series in range(num):
     model.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
     # Fitting the RNN to the Training set
-    model.fit(X_train, y_train, epochs = 100, batch_size = 32)
+    model.fit(X_train, y_train, epochs = 5, batch_size = 32)
 
     # Prepare the test data
     # Getting the predicted value
@@ -120,12 +121,14 @@ for time_series in range(num):
 
     # Make predictions
     predicted_value = model.predict(X_test)
+    print("------------------------------------------------------------------")
+    print(predicted_value.shape)
     predicted_value = sc.inverse_transform(predicted_value)
 
     # Visualising the results
-    plt.plot(col_names[data_to_be_trained:],dataset_test.values, color = "red", label = "Real Value")
-    plt.plot(col_names[data_to_be_trained:],predicted_value, color = "blue", label = "Predicted Value")
-    plt.xticks(np.arange(0,146,60))
+    plt.plot(col_names[data_to_be_trained:], dataset_test.values, color = "red", label = "Real Value")
+    plt.plot(col_names[data_to_be_trained:], predicted_value, color = "blue", label = "Predicted Value")
+    plt.xticks(np.arange(0, 146, 60))
     title = 'Time Series '
     for ts_name in list_names[time_series:(time_series+1)]:
         title = title + ts_name + ' Value Prediction'
@@ -136,17 +139,22 @@ for time_series in range(num):
     plt.show()
 print("Done!")
 
-print("Computing one model for n time series...")
+print("Computing one model for all time series...")
 # for n time series
+sc_list = []
+for i in range(len(df.columns)):
+    sc_list.append(MinMaxScaler(feature_range = (0, 1)))
+sc = np.array(sc_list)
+
 X_train = []
 y_train = []
-for time_series in range(num):
+for time_series in range(len(df.columns)):
     training_set = df.iloc[:data_to_be_trained, time_series:(time_series+1)].values
     test_set = df.iloc[data_to_be_trained:, time_series:(time_series+1)].values
 
     # Feature Scaling
-    sc = MinMaxScaler(feature_range = (0, 1))
-    training_set_scaled = sc.fit_transform(training_set)
+    # sc = MinMaxScaler(feature_range = (0, 1))
+    training_set_scaled = sc[time_series].fit_transform(training_set)
 
     # Creating a data structure with 60 time-steps and 1 output
     for i in range(60, data_to_be_trained):
@@ -177,7 +185,7 @@ model.add(Dense(units=1))
 model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Fitting the RNN to the Training set
-model.fit(X_train, y_train, epochs=100, batch_size=32)
+model.fit(X_train, y_train, epochs=1, batch_size=32)
 
 # predict and visualise for each time series
 for time_series in range(num):
@@ -187,8 +195,8 @@ for time_series in range(num):
     dataset_test = df.iloc[data_to_be_trained:, time_series:(time_series+1)]
     dataset_total = pd.concat((dataset_train, dataset_test), axis = 0)
     inputs = dataset_total[len(dataset_total) - len(dataset_test) - 60:].values
-    inputs = inputs.reshape(-1,1)
-    inputs = sc.transform(inputs)
+    inputs = inputs.reshape(-1, 1)
+    inputs = sc[time_series].transform(inputs)
     X_test = []
     for i in range(60, len(inputs)):
         X_test.append(inputs[i-60:i, 0])
@@ -199,7 +207,7 @@ for time_series in range(num):
 
     # Make predictions
     predicted_value = model.predict(X_test)
-    predicted_value = sc.inverse_transform(predicted_value)
+    predicted_value = sc[time_series].inverse_transform(predicted_value)
 
     # Visualising the results
     plt.plot(col_names[data_to_be_trained:],dataset_test.values, color = "red", label = "Real Value")
