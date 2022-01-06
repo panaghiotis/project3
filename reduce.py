@@ -41,7 +41,7 @@ if args.q == None:
 output_file = args.od
 if args.od == None:
     output_file = input("Enter an output file name (.csv at the end): ")
-output_q = args.od
+output_q = args.oq
 if args.oq == None:
     output_q = input("Enter an output query file name (.csv at the end): ")
 # ------------------------------------------------------------------------------------------------
