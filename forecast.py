@@ -1,6 +1,7 @@
 import argparse
 import math
 import matplotlib.pyplot as plt
+import tensorflow as tf
 import keras
 import pandas as pd
 import numpy as np
@@ -14,6 +15,10 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from keras.callbacks import EarlyStopping
+
+
+# load model training or run model training
+loadModel = True
 
 # 1 time series default
 num = 1
@@ -165,27 +170,41 @@ X_train, y_train = np.array(X_train), np.array(y_train)
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 # (740, 60, 1)
 
-model = Sequential()
-# Adding the first LSTM layer and some Dropout regularisation
-model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-model.add(Dropout(0.2))
-# Adding a second LSTM layer and some Dropout regularisation
-model.add(LSTM(units=50, return_sequences=True))
-model.add(Dropout(0.2))
-# Adding a third LSTM layer and some Dropout regularisation
-model.add(LSTM(units=50, return_sequences=True))
-model.add(Dropout(0.2))
-# Adding a fourth LSTM layer and some Dropout regularisation
-model.add(LSTM(units=50))
-model.add(Dropout(0.2))
-# Adding the output layer
-model.add(Dense(units=1))
+if loadModel is True:
+    model = tf.keras.models.load_model('saved_models/model_forecast')
 
-# Compiling the RNN
-model.compile(optimizer='adam', loss='mean_squared_error')
+    # Check its architecture
+    model.summary()
 
-# Fitting the RNN to the Training set
-model.fit(X_train, y_train, epochs=1, batch_size=32)
+    # Evaluate the restored model
+    # loss, acc = model.evaluate(X_train, y_train, verbose=2)
+    # print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
+
+else:
+    model = Sequential()
+    # Adding the first LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], 1)))
+    model.add(Dropout(0.2))
+    # Adding a second LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=50, return_sequences=True))
+    model.add(Dropout(0.2))
+    # Adding a third LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=50, return_sequences=True))
+    model.add(Dropout(0.2))
+    # Adding a fourth LSTM layer and some Dropout regularisation
+    model.add(LSTM(units=50))
+    model.add(Dropout(0.2))
+    # Adding the output layer
+    model.add(Dense(units=1))
+
+    # Compiling the RNN
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    # Fitting the RNN to the Training set
+    model.fit(X_train, y_train, epochs=1, batch_size=32)
+
+    # Save the entire model as a SavedModel.
+    model.save('saved_models/model_forecast')
 
 # predict and visualise for each time series
 for time_series in range(num):
