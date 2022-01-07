@@ -165,9 +165,22 @@ for time_series in range(num):
         title = title + ts_name
     title = title + ' Anomaly Detection'
 
-    # inverse transform
-    plt.plot(col_names[TIME_STEPS:], test_list[time_series][TIME_STEPS:], label='time series value')
-    sns.scatterplot(anomalies.index, anomalies.value, color=sns.color_palette()[3], s=52, label='anomaly')
+    # inverse transform time series and anomalies
+    ts_values = scaler[data_to_be_trained + time_series].inverse_transform(test_list[time_series][TIME_STEPS:])
+
+    if len(anomalies.value) != 0:
+        an_vals = np.array(anomalies.value)
+        an_vals = an_vals.reshape(-1, 1)
+
+        anomalies_inversed = scaler[data_to_be_trained + time_series].inverse_transform(an_vals)
+        d1_anoms = anomalies_inversed.flatten()
+    else:
+        d1_anoms = anomalies.value
+
+    # plt.plot(col_names[TIME_STEPS:], test_list[time_series][TIME_STEPS:], label='time series value')
+    plt.plot(col_names[TIME_STEPS:], ts_values, label='time series value')
+    # sns.scatterplot(anomalies.index, anomalies.value, color=sns.color_palette()[3], s=52, label='anomaly')
+    sns.scatterplot(anomalies.index, d1_anoms, color=sns.color_palette()[3], s=52, label='anomaly')
     plt.xticks(np.arange(0,730,30))
     plt.title(title)
     plt.xlabel('Time')
