@@ -56,18 +56,23 @@ list_names = list(df.columns)
 # train almost 80% of data
 data_to_be_trained = (80 * len(df.index)) // 100
 
+scaler_list = []
+for i in range(len(df.columns)):
+    scaler_list.append(StandardScaler())
+scaler = np.array(scaler_list)
+
 X_train, y_train = [], []
 X_test, y_test = [], []
 test_list = []
-for time_series in range(num):
+for time_series in range(len(df.columns)):
     training_set = df.iloc[:data_to_be_trained, time_series:(time_series+1)].values
     test_set = df.iloc[data_to_be_trained:, time_series:(time_series+1)].values
 
-    scaler = StandardScaler()
-    scaler = scaler.fit(training_set)
+   # scaler = StandardScaler()
+   # scaler = scaler.fit(training_set)
 
-    training_set_scaled = scaler.transform(training_set)
-    test_set_scaled = scaler.transform(test_set)
+    training_set_scaled = scaler[time_series].fit_transform(training_set)
+    test_set_scaled = scaler[time_series].transform(test_set)
     test_list.append(test_set_scaled)
 
     # reshape to [samples, time_steps, n_features]
@@ -104,14 +109,14 @@ plt.show()
 
 THRESHOLD = mae_val
 for time_series in range(num):
-    train = X_train[(time_series*(len(X_train) // num)):((time_series+1)*(len(X_train) // num))]
+    train = X_train[(time_series*(len(X_train) // len(df.columns))):((time_series+1)*(len(X_train) // len(df.columns)))]
     X_train_pred = model.predict(train)
     train_mae_loss = np.mean(np.abs(X_train_pred - train), axis=1)
 
     sns.distplot(train_mae_loss, bins=50, kde=True)
     plt.show()
 
-    test = X_test[(time_series*(len(X_test) // num)):((time_series+1)*(len(X_test) // num))]
+    test = X_test[(time_series*(len(X_test) // len(df.columns))):((time_series+1)*(len(X_test) // len(df.columns)))]
     X_test_pred = model.predict(test)
     test_mae_loss = np.mean(np.abs(X_test_pred - test), axis=1)
 
