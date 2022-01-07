@@ -1,4 +1,5 @@
 import argparse
+import tensorflow as tf
 from keras.layers import Input, Dense, Conv1D, MaxPooling1D, UpSampling1D, BatchNormalization, LSTM, RepeatVector
 from keras.models import Model
 from keras.models import model_from_json
@@ -17,6 +18,10 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 import csv
 import math
+
+# load model training or run model training
+loadModel = True
+
 
 # ----------------------INPUT PARSER for python --------------------------------------------------
 # by https://stackoverflow.com/questions/20063/whats-the-best-way-to-parse-command-line-arguments
@@ -197,27 +202,36 @@ encoded = MaxPooling1D(2, padding="same")(x) # 3 dims
 
 encoder = Model(input_window, encoded)
 
-# 3 dimensions in the encoded layer
+if loadModel is True:
+    autoencoder = tf.keras.models.load_model('saved_models/model_reduce')
 
-x = Conv1D(1, 3, activation="relu", padding="same")(encoded) # 3 dims
-#x = BatchNormalization()(x)
-x = UpSampling1D(2)(x) # 6 dims
-x = Conv1D(16, 2, activation='relu')(x) # 5 dims
-#x = BatchNormalization()(x)
-x = UpSampling1D(2)(x) # 10 dims
-decoded = Conv1D(1, 3, activation='sigmoid', padding='same')(x) # 10 dims
-autoencoder = Model(input_window, decoded)
-autoencoder.summary()
+    # Check its architecture
+    autoencoder.summary()
 
-autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
+else:
+    # 3 dimensions in the encoded layer
+    x = Conv1D(1, 3, activation="relu", padding="same")(encoded) # 3 dims
+    #x = BatchNormalization()(x)
+    x = UpSampling1D(2)(x) # 6 dims
+    x = Conv1D(16, 2, activation='relu')(x) # 5 dims
+    #x = BatchNormalization()(x)
+    x = UpSampling1D(2)(x) # 10 dims
+    decoded = Conv1D(1, 3, activation='sigmoid', padding='same')(x) # 10 dims
+    autoencoder = Model(input_window, decoded)
+    autoencoder.summary()
 
-history = autoencoder.fit(X_train, X_train,
-                epochs=epochs,
-                batch_size=1024,
-                shuffle=True,
-                validation_data=(X_test, X_test))
+    autoencoder.compile(optimizer='adam', loss='binary_crossentropy')
 
-plot_history(history)
+    history = autoencoder.fit(X_train, X_train,
+                    epochs=epochs,
+                    batch_size=1024,
+                    shuffle=True,
+                    validation_data=(X_test, X_test))
+
+    # Save the entire model as a SavedModel.
+    autoencoder.save('saved_models/model_reduce')
+
+    plot_history(history)
 
 list_out = []
 for time_series in range((len(df.columns) - data_to_be_trained)):
@@ -267,7 +281,7 @@ for time_series in range(len(df.columns)):
             for j in range(encoding_dim):
                 reduced_time_series.append(d2_reduced_encoded_tested[i][j])
         list_out.append(reduced_time_series)
-        #print("tested: ", len(reduced_time_series))
+        # print("tested: ", len(reduced_time_series))
 
 # ------------------------------------------------------------------------------------------------
 

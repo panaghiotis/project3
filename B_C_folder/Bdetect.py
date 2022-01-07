@@ -10,6 +10,9 @@ from matplotlib import rc
 from pandas.plotting import register_matplotlib_converters
 from sklearn.preprocessing import StandardScaler
 
+# load model training or run model training
+loadModel = True
+
 # 1 time series default
 num = 1
 mae_val = 0.0
@@ -98,21 +101,34 @@ X_test, y_test = np.array(X_test), np.array(y_test)
 
 print(X_train.shape)
 
-model = keras.Sequential()
-model.add(keras.layers.LSTM(units=64, input_shape=(X_train.shape[1], X_train.shape[2])))
-model.add(keras.layers.Dropout(rate=0.2))
-model.add(keras.layers.RepeatVector(n=X_train.shape[1]))
-model.add(keras.layers.LSTM(units=64, return_sequences=True))
-model.add(keras.layers.Dropout(rate=0.2))
-model.add(keras.layers.TimeDistributed(keras.layers.Dense(units=X_train.shape[2])))
-model.compile(loss='mae', optimizer='adam')
+if loadModel is True:
+    model = tf.keras.models.load_model('saved_models/model_detect')
 
-history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.1, shuffle=False)
+    # Check its architecture
+    model.summary()
 
-plt.plot(history.history['loss'], label='train')
-plt.plot(history.history['val_loss'], label='test')
-plt.legend()
-plt.show()
+    # Evaluate the restored model
+    # loss, acc = model.evaluate(X_train, y_train, verbose=2)
+    # print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
+else :
+    model = keras.Sequential()
+    model.add(keras.layers.LSTM(units=64, input_shape=(X_train.shape[1], X_train.shape[2])))
+    model.add(keras.layers.Dropout(rate=0.2))
+    model.add(keras.layers.RepeatVector(n=X_train.shape[1]))
+    model.add(keras.layers.LSTM(units=64, return_sequences=True))
+    model.add(keras.layers.Dropout(rate=0.2))
+    model.add(keras.layers.TimeDistributed(keras.layers.Dense(units=X_train.shape[2])))
+    model.compile(loss='mae', optimizer='adam')
+
+    history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.1, shuffle=False)
+
+    # Save the entire model as a SavedModel.
+    model.save('saved_models/model_detect')
+
+    plt.plot(history.history['loss'], label='train')
+    plt.plot(history.history['val_loss'], label='test')
+    plt.legend()
+    plt.show()
 
 THRESHOLD = mae_val
 for time_series in range(num):
