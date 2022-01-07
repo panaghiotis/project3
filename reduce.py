@@ -117,6 +117,11 @@ list_names = list(df.columns)
 data_to_be_trained = (80 * len(df.index)) // 100
 print(data_to_be_trained)
 
+sc_list = []
+for i in range(len(df.columns)):
+    sc_list.append(MinMaxScaler(feature_range = (0, 1)))
+sc = np.array(sc_list)
+
 # test_samples = (len(df.index) - data_to_be_trained - window_length) * len(df.columns)
 
 X_train, X_test = [], []
@@ -132,9 +137,9 @@ for time_series in range(len(df.columns)):
     # print(test_set)
 
     # Feature Scaling
-    sc = MinMaxScaler(feature_range=(0, 1))
-    training_set_scaled = sc.fit_transform(training_set)
-    test_set_scaled = sc.transform(test_set)
+    # sc = MinMaxScaler(feature_range=(0, 1))
+    training_set_scaled = sc[time_series].fit_transform(training_set)
+    test_set_scaled = sc[time_series].transform(test_set)
     # print("test scaled length: ", len(test_set_scaled))
 
     # # Creating a data structure with window length time-steps and 1 output
@@ -244,7 +249,7 @@ for time_series in range(len(df.columns)):
     nsamples, nx, ny = decoded_stocks.shape
     d2_decoded_stocks = decoded_stocks.reshape((nsamples, nx * ny))
     # print(d2_decoded_stocks.shape)
-    d2_decoded_stocks = sc.inverse_transform(d2_decoded_stocks)
+    d2_decoded_stocks = sc[time_series].inverse_transform(d2_decoded_stocks)
     print(d2_decoded_stocks.shape)
     # print(d2_decoded_stocks)
 
@@ -265,13 +270,13 @@ for time_series in range(len(df.columns)):
     reduced_encoded_tested = encoder.predict(tested)
     nsamples, nx, ny = reduced_encoded.shape
     d2_reduced_encoded = reduced_encoded.reshape((nsamples, nx * ny))
-    d2_reduced_encoded = sc.inverse_transform(d2_reduced_encoded)
+    d2_reduced_encoded = sc[time_series].inverse_transform(d2_reduced_encoded)
     print(d2_reduced_encoded.shape)
     # print(d2_reduced_encoded)
 
     nsamples, nx, ny = reduced_encoded_tested.shape
     d2_reduced_encoded_tested = reduced_encoded_tested.reshape((nsamples, nx * ny))
-    d2_reduced_encoded_tested = sc.inverse_transform(d2_reduced_encoded_tested)
+    d2_reduced_encoded_tested = sc[time_series].inverse_transform(d2_reduced_encoded_tested)
     print(d2_reduced_encoded_tested.shape)
 
     reduced_time_series = []
