@@ -29,6 +29,8 @@ parser.add_argument('-d', help='A required string positional argument')
 parser.add_argument('-n', type=int, help='An optional integer argument')
 # Optional argument
 parser.add_argument('-mae', type=float, help='An optional integer argument')
+# Optional argument
+parser.add_argument('-load', type=int, help='An optional integer argument')
 args = parser.parse_args()
 if args.n != None:
     num = args.n
@@ -39,6 +41,8 @@ if args.mae != None:
     mae_val = args.mae
 else:
     mae_val = float(input("Enter a mae value: "))
+if args.load == 0:
+    loadModel = False
 # ------------------------------------------------------------------------------------------------
 
 df = pd.read_csv(dataset, sep = '\t')
@@ -152,7 +156,7 @@ for time_series in range(num):
 
     plt.plot(test_score_df.index, test_score_df.loss, label='loss')
     plt.plot(test_score_df.index, test_score_df.threshold, label='threshold')
-    plt.xticks(np.arange(0,730,30))
+    plt.xticks(np.arange(0,3650,30))
     plt.legend()
     plt.show()
 
@@ -181,7 +185,7 @@ for time_series in range(num):
     plt.plot(col_names[TIME_STEPS:], ts_values, label='time series value')
     # sns.scatterplot(anomalies.index, anomalies.value, color=sns.color_palette()[3], s=52, label='anomaly')
     sns.scatterplot(anomalies.index, d1_anoms, color=sns.color_palette()[3], s=52, label='anomaly')
-    plt.xticks(np.arange(0,730,30))
+    plt.xticks(np.arange(0,3650,30))
     plt.title(title)
     plt.xlabel('Time')
     plt.ylabel('Value')

@@ -36,19 +36,32 @@ parser.add_argument('-q', help='A required string positional argument')
 parser.add_argument('-od', help='A required string positional argument')
 # Required output dataset argument
 parser.add_argument('-oq', help='A required string positional argument')
+# Optional argument
+parser.add_argument('-load', type=int, help='An optional integer argument')
 args = parser.parse_args()
+
 dataset = args.d
 if args.d == None:
     dataset = input("Enter a dataset filepath: ")
+
 q_dataset = args.q
 if args.q == None:
     q_dataset = input("Enter a query dataset filepath: ")
+
 output_file = args.od
 if args.od == None:
-    output_file = input("Enter an output file name (.csv at the end): ")
+    output_file = input("Enter an output file name: ")
+if output_file[-4:] != '.csv':
+    output_file = output_file + '.csv'
+
 output_q = args.oq
 if args.oq == None:
-    output_q = input("Enter an output query file name (.csv at the end): ")
+    output_q = input("Enter an output query file name: ")
+if output_q[-4:] != '.csv':
+    output_q = output_q + '.csv'
+
+if args.load == 0:
+    loadModel = False
 # ------------------------------------------------------------------------------------------------
 
 # -----------------------------------------------Parameters---------------------------------------
@@ -56,7 +69,7 @@ window_length = 10
 encoding_dim = 3
 epochs = 100
 # test_samples = 136
-test_samples = 73
+test_samples = 365
 # ------------------------------------------------------------------------------------------------
 
 # -----------------------------------------------Utils--------------------------------------------
@@ -64,7 +77,7 @@ test_samples = 73
 def plot_examples(stock_input, stock_decoded):
     n = 10
     plt.figure(figsize=(20, 4))
-    for i, idx in enumerate(list(np.arange(0, test_samples, 8))):
+    for i, idx in enumerate(list(np.arange(0, test_samples, 37))):
         # display original
         ax = plt.subplot(2, n, i + 1)
         if i == 0:
