@@ -16,6 +16,22 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from keras.callbacks import EarlyStopping
 
+# tf.config.list_physical_devices("GPU")
+# [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+
+# def init_gpu():
+#     import tensorflow as tf
+#     gpus = tf.config.experimental.list_physical_devices('GPU')
+#     if gpus:
+#         try:
+#             for gpu in gpus:
+#                 tf.config.experimental.set_memory_growth(gpu, True)
+#
+#             tf.config.experimental.list_logical_devices('GPU')
+#         except RuntimeError as e:
+#             print(e)
+#
+# init_gpu()
 
 # load model training or run model training
 loadModel = True
@@ -32,12 +48,16 @@ parser = argparse.ArgumentParser(description='Optional app description')
 parser.add_argument('-d', help='A required string positional argument')
 # Optional argument
 parser.add_argument('-n', type=int, help='An optional integer argument')
+# Optional argument
+parser.add_argument('-load', type=int, help='An optional integer argument')
 args = parser.parse_args()
 if args.n != None:
     num = args.n
 dataset = args.d
 if args.d == None:
     dataset = input("Enter a dataset filepath: ")
+if args.load == 0:
+    loadModel = False
 # ------------------------------------------------------------------------------------------------
 
 df=pd.read_csv(dataset, sep = '\t')
@@ -60,7 +80,6 @@ list_names = list(df.columns)
 # train almost 80% of data
 data_to_be_trained = (80 * len(df.index)) // 100
 
-# TODO: random time series. Make a list of random numbers and traverse the list with for i puting i as time series:time series +1
 print("Computing different models for each time series...")
 # for each time series
 for time_series in range(num):
@@ -133,7 +152,7 @@ for time_series in range(num):
     # Visualising the results
     plt.plot(col_names[data_to_be_trained:], dataset_test.values, color = "red", label = "Real Value")
     plt.plot(col_names[data_to_be_trained:], predicted_value, color = "blue", label = "Predicted Value")
-    plt.xticks(np.arange(0, 146, 60))
+    plt.xticks(np.arange(0, 730, 60))
     title = 'Time Series '
     for ts_name in list_names[time_series:(time_series+1)]:
         title = title + ts_name + ' Value Prediction'
@@ -231,7 +250,7 @@ for time_series in range(num):
     # Visualising the results
     plt.plot(col_names[data_to_be_trained:],dataset_test.values, color = "red", label = "Real Value")
     plt.plot(col_names[data_to_be_trained:],predicted_value, color = "blue", label = "Predicted Value")
-    plt.xticks(np.arange(0,146,60))
+    plt.xticks(np.arange(0,730,60))
     title = 'Time Series '
     for ts_name in list_names[time_series:(time_series+1)]:
         title = title + ts_name + ' Value Prediction'
